@@ -1,7 +1,6 @@
-from multiprocessing.managers import Value
-
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from .utils import PasswordHasher
 
 class CustomUserManager(BaseUserManager):
     """Менеджер для создания пользователей и суперпользователей"""
@@ -22,10 +21,11 @@ class CustomUserManager(BaseUserManager):
         # Создаем пользователя без пароля (временно)
         user = self.model(email=email, **extra_fields)
 
-        # Хеширование
-        # Пока используем встроенное (временно)
+        # Используем хешер
         if password:
-            user.set_password(password)
+            user.password = PasswordHasher.hash_password(password)
+        else:
+            user.password = PasswordHasher.hash_password('')
 
         user.save(using=self._db)
         return user
@@ -93,3 +93,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Короткое имя"""
 
         return self.first_name
+
+    # Метод проверки пароля
+    def check_password(self, raw_password):
+        """Проверяет пароль используя хешер"""
+
+        return PasswordHasher.verify_password(raw_password, self.password)
+
+    def set_password(self, raw_password):
+        """Устанавливает пароль используя хешер"""
+
+        self.password = PasswordHasher.hash_password(raw_password)
