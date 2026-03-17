@@ -51,6 +51,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Кастомный middleware
+    'authentication.middleware.TokenAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'User_Portal.urls'
