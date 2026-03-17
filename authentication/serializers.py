@@ -1,6 +1,38 @@
 from rest_framework import serializers
-from .models import User
+from authentication.models import User
 from .utils import PasswordHasher
+
+class LoginSerializer(serializers.Serializer):
+    """Сериализатор для входа пользователя"""
+
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(
+        required=True,
+        style={'input_type': 'password'},
+        write_only=True
+    )
+
+    def validate(self, data):
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            raise serializers.ValidationError('Email и пароль обязательны')
+
+        try:
+            # Ищем пользователя по email
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError('Неверный email или пароль')
+
+        # Проверяем активен ли пользователь
+        if not user.check_password(password):
+            raise serializers.ValidationError('Неверный email или пароль')
+
+        # Сохраняем пользователя в validated_data для использования в view
+        data['user'] = user
+        return data
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации новых пользователей"""
