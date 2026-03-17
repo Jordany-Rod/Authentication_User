@@ -86,3 +86,39 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'first_name', 'last_name', 'patronymic', 'date_joined', 'is_active']
         read_only_fields = ['id', 'date_joined', 'is_active']
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """Сериализатор для обновления профиля пользователя"""
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'patronymic']
+
+    def validate_first_name(self, value):
+        if value and len(value.strip()) == 0:
+            raise serializers.ValidationError('Имя не может быть пустым')
+        return value
+
+    def validate_last_name(self, value):
+        if value and len(value.strip()) == 0:
+            raise serializers.ValidationError('Фамилия не может быть пустой')
+        return value
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """Сериализатор для смены пароля"""
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    new_password2 = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        if data['new_password'] != data['new_password2']:
+            raise serializers.ValidationError({
+                'new_password': 'Новые пароли не совпадают'
+            })
+
+        # Валидация сложности пароля
+        if len(data['new_password']) < 6:
+            raise serializers.ValidationError({
+                'new_password': 'Пароль должен быть не менее 6 символов'
+            })
+
+        return data

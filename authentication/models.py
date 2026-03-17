@@ -104,3 +104,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Устанавливает пароль используя хешер"""
 
         self.password = PasswordHasher.hash_password(raw_password)
+
+class BlacklistedToken(models.Model):
+    """Модель для хранения отозванных токенов (для logout)"""
+
+    token = models.TextField(unique=True, db_index=True)
+    blacklisted_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blacklisted_tokens')
+
+    class Meta:
+        db_table = 'blacklisted_tokens'
+        verbose_name = 'Отзывной токен'
+        verbose_name_plural = 'Отзывные токены'
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['expires_at']),
+        ]
+
+    def __str__(self):
+        return f"Token for {self.user.email} blacklisted at {self.blacklisted_at}"

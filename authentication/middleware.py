@@ -60,3 +60,10 @@ class TokenAuthMiddleware(MiddlewareMixin):
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         return None
+
+class DisableCSRFMiddleware(MiddlewareMixin):
+    """Отключает CSRF проверку для API запросов"""
+
+    def process_request(self, request):
+        setattr(request, '_dont_enforce_csrf_checks', True)
+        return None

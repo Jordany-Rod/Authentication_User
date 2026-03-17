@@ -54,6 +54,7 @@ MIDDLEWARE = [
 
     # Кастомный middleware
     'authentication.middleware.TokenAuthMiddleware',
+    'authentication.middleware.DisableCSRFMiddleware'
 ]
 
 ROOT_URLCONF = 'User_Portal.urls'

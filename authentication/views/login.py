@@ -23,8 +23,8 @@ class LoginView(APIView):
             user = serializer.validated_data['user']
 
             # Генерируем токены
-            access_token = TokenManager.generate_access_token(user.id)
-            refresh_token = TokenManager.generate_refresh_token(user.id)
+            access_token, _ = TokenManager.generate_access_token(user.id)
+            refresh_token, _ = TokenManager.generate_refresh_token(user.id)
 
             # Данные пользователя
             user_data = UserSerializer(user).data
@@ -79,7 +79,7 @@ class RefreshTokenView(APIView):
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         # Генерируем новый access токен
-        new_access_token = TokenManager.generate_access_token(user.id)
+        new_access_token, _ = TokenManager.generate_access_token(user.id)
 
         return Response({
             'success': True,
