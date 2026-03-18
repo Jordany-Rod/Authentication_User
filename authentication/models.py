@@ -124,3 +124,141 @@ class BlacklistedToken(models.Model):
 
     def __str__(self):
         return f"Token for {self.user.email} blacklisted at {self.blacklisted_at}"
+
+class Role(models.Model):
+    """Модель роли пользователя"""
+    name = models.CharField(max_length=50, unique=True, verbose_name='Название')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        db_table = 'roles'
+        verbose_name = 'Роль'
+        verbose_name_plural = 'Роли'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+class Resource(models.Model):
+    """Модель ресурса (объекта доступа)"""
+
+    name = models.CharField(max_length=100, unique=True, verbose_name='Название')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        db_table = 'resources'
+        verbose_name = 'Ресурс'
+        verbose_name_plural = 'Ресурсы'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+class Action(models.Model):
+    """Модель действия (CRUD + дополнительные)"""
+
+    ACTION_CHOICES = [
+        ('create', 'Создание'),
+        ('read', 'Чтение'),
+        ('update', 'Обновление'),
+        ('delete', 'Удаление'),
+        ('manage', 'Управление'),
+    ]
+
+    code = models.CharField(max_length=20, unique=True, choices=ACTION_CHOICES, verbose_name='Код')
+    description = models.CharField(max_length=100, blank=True, verbose_name='Описание')
+
+    class Meta:
+        db_table = 'actions'
+        verbose_name = 'Действие'
+        verbose_name_plural = 'Действия'
+        ordering = ['code']
+
+    def __str__(self):
+        return self.get_code_display()
+
+class Permission(models.Model):
+    """Модель разрешения (связь Роль-Ресурс-Действие)"""
+
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='permissions', verbose_name='Роль')
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='permissions', verbose_name='Ресурс')
+    action = models.ForeignKey(Action, on_delete=models.CASCADE, related_name='permissions', verbose_name='Действие')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        db_table = 'permissions'
+        verbose_name = 'Разрешение'
+        verbose_name_plural = 'Разрешения'
+        unique_together = ['role', 'resource', 'action']
+        indexes = [
+            models.Index(fields=['role', 'resource', 'action']),
+        ]
+
+    def __str__(self):
+        return f"{self.role} - {self.resource} - {self.action}"
+
+class UserRole(models.Model):
+    """Модель назначения ролей пользователям"""
+
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='user_roles', verbose_name='Пользователь')
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='user_roles', verbose_name='Роль')
+    assigned_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата назначения')
+    assigned_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='assigned_roles', verbose_name='Кем назначен')
+
+    class Meta:
+        db_table = 'user_roles'
+        verbose_name = 'Роль пользователя'
+        verbose_name_plural = 'Роли пользователей'
+        unique_together = ['user', 'role']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.role.name}"
+
+class UserDirectPermission(models.Model):
+    """Модель прямых разрешений для пользователей (override)"""
+
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='direct_permissions',
+                             verbose_name='Пользователь')
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, verbose_name='Ресурс')
+    action = models.ForeignKey(Action, on_delete=models.CASCADE, verbose_name='Действие')
+    is_granted = models.BooleanField(default=True, verbose_name='Разрешено')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        db_table = 'user_direct_permissions'
+        verbose_name = 'Прямое разрешение'
+        verbose_name_plural = 'Прямые разрешения'
+        unique_together = ['user', 'resource', 'action']
+
+    def __str__(self):
+        status = 'разрешено' if self.is_granted else 'запрещено'
+        return f"{self.user.email} - {self.resource} - {self.action} ({status})"
+
+class Condition(models.Model):
+    """Модель условий для ABAC (атрибутный контроль доступа)"""
+
+    CONDITION_TYPES = [
+        ('owner_only', 'Только владелец'),
+        ('status', 'Статус ресурса'),
+        ('date_range', 'Диапазон дат'),
+        ('custom', 'Пользовательское условие'),
+    ]
+
+    permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name='conditions', null=True, blank=True,
+                                  verbose_name='Разрешение')
+    user_permission = models.ForeignKey(UserDirectPermission, on_delete=models.CASCADE, related_name='conditions',
+                                       null=True, blank=True, verbose_name='Прямое разрешение')
+    condition_type = models.CharField(max_length=50, choices=CONDITION_TYPES, verbose_name='Тип условия')
+    condition_value = models.TextField(default='{}', verbose_name='Значение условия')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    class Meta:
+        db_table = 'conditions'
+        verbose_name = 'Условие'
+        verbose_name_plural = 'Условия'
+
+    def __str__(self):
+        return f"{self.get_condition_type_display()}: {self.condition_value}"
