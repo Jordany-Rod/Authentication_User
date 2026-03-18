@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 from .views import (
     # Аутентификация
     RegisterView, LoginView, RefreshTokenView,
@@ -15,7 +16,22 @@ from .views import (
     PostUpdateView, PostDeleteView,
     CommentListView, CommentCreateView,
     ProductListView,
+
+    # Admin viewsets
+    RoleViewSet, ResourceViewSet, ActionViewSet,
+    PermissionViewSet, UserRoleViewSet,
+    UserDirectPermissionViewSet, AdminUserViewSet
 )
+
+# Создаем router для ViewSet'ов
+router = DefaultRouter()
+router.register(r'admin/roles', RoleViewSet, basename='admin-role')
+router.register(r'admin/resources', ResourceViewSet, basename='admin-resource')
+router.register(r'admin/actions', ActionViewSet, basename='admin-action')
+router.register(r'admin/permissions', PermissionViewSet, basename='admin-permission')
+router.register(r'admin/user-roles', UserRoleViewSet, basename='admin-user-role')
+router.register(r'admin/direct-permissions', UserDirectPermissionViewSet, basename='admin-direct-permission')
+router.register(r'admin/users', AdminUserViewSet, basename='admin-user')
 
 urlpatterns = [
     # Аутентификация
@@ -49,3 +65,5 @@ urlpatterns = [
     path('products/', ProductListView.as_view(), name='product_list'),
 ]
 
+# Добавляем маршруты от router'а
+urlpatterns += router.urls

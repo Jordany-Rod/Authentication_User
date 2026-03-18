@@ -8,6 +8,11 @@ from .demo_recources import (
     CommentListView, CommentCreateView,
     ProductListView
 )
+from .admin_views import (
+    RoleViewSet, ResourceViewSet, ActionViewSet,
+    PermissionViewSet, UserRoleViewSet,
+    UserDirectPermissionViewSet, AdminUserViewSet
+)
 
 
 __all__ = [
@@ -19,5 +24,8 @@ __all__ = [
     'PostUpdateView', 'PostDeleteView',
     'CommentListView', 'CommentCreateView',
     'PostListView',
+    'RoleViewSet', 'ResourceViewSet', 'ActionViewSet',
+    'PermissionViewSet', 'UserRoleViewSet',
+    'UserDirectPermissionViewSet', 'AdminUserViewSet'
 ]
 

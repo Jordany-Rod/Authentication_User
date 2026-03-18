@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from authentication.models import User
+from authentication.models import (User, BlacklistedToken, Role, Resource,
+                                   Action, Permission, UserRole, UserDirectPermission, Condition)
 from .utils import PasswordHasher
 
 class LoginSerializer(serializers.Serializer):
@@ -122,3 +123,70 @@ class ChangePasswordSerializer(serializers.Serializer):
             })
 
         return data
+
+class RoleSerializer(serializers.ModelSerializer):
+    """Сериализатор для ролей"""
+    class Meta:
+        model = Role
+        fields = ['id', 'name', 'description', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+class ResourceSerializer(serializers.ModelSerializer):
+    """Сериализатор для ресурсов"""
+    class Meta:
+        model = Resource
+        fields = ['id', 'name', 'description', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+class ActionSerializer(serializers.ModelSerializer):
+    """Сериализатор для действий"""
+    class Meta:
+        model = Action
+        fields = ['id', 'code', 'description']
+        read_only_fields = ['id']
+
+
+class PermissionSerializer(serializers.ModelSerializer):
+    """Сериализатор для разрешений"""
+    role_name = serializers.CharField(source='role.name', read_only=True)
+    resource_name = serializers.CharField(source='resource.name', read_only=True)
+    action_code = serializers.CharField(source='action.code', read_only=True)
+
+    class Meta:
+        model = Permission
+        fields = ['id', 'role', 'role_name', 'resource', 'resource_name',
+                  'action', 'action_code', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    """Сериализатор для назначения ролей пользователям"""
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    role_name = serializers.CharField(source='role.name', read_only=True)
+
+    class Meta:
+        model = UserRole
+        fields = ['id', 'user', 'user_email', 'role', 'role_name',
+                  'assigned_at', 'assigned_by']
+        read_only_fields = ['id', 'assigned_at']
+
+
+class UserDirectPermissionSerializer(serializers.ModelSerializer):
+    """Сериализатор для прямых разрешений пользователей"""
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    resource_name = serializers.CharField(source='resource.name', read_only=True)
+    action_code = serializers.CharField(source='action.code', read_only=True)
+
+    class Meta:
+        model = UserDirectPermission
+        fields = ['id', 'user', 'user_email', 'resource', 'resource_name',
+                  'action', 'action_code', 'is_granted', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+class ConditionSerializer(serializers.ModelSerializer):
+    """Сериализатор для условий"""
+    class Meta:
+        model = Condition
+        fields = ['id', 'permission', 'user_permission', 'condition_type',
+                  'condition_value', 'created_at']
+        read_only_fields = ['id', 'created_at']
