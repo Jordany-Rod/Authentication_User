@@ -1,9 +1,20 @@
 from django.urls import path
 from .views import (
+    # Аутентификация
     RegisterView, LoginView, RefreshTokenView,
+    LogoutView, LogoutAllView,
+
+    # Профиль
+    ProfileView, ChangePasswordView, DeleteAccountView,
+
+    # Тестовые
     ProtectedView, AdminOnlyView,
-    ProfileView, ChangePasswordView, LogoutView,
-    LogoutAllView, DeleteAccountView
+
+    # Демо-ресурсы
+    PostListView, PostCreateView, PostDetailView,
+    PostUpdateView, PostDeleteView,
+    CommentListView, CommentCreateView,
+    ProductListView,
 )
 
 urlpatterns = [
@@ -21,6 +32,20 @@ urlpatterns = [
 
     # Тестовые защищенные маршруты
     path('me/', ProtectedView.as_view(), name='me'),
-    path('admin-only/', AdminOnlyView.as_view(), name='admin_only')
+    path('admin-only/', AdminOnlyView.as_view(), name='admin_only'),
+
+    # Демо-ресурсы (посты)
+    path('posts/', PostListView.as_view(), name='post_list'),
+    path('posts/create/', PostCreateView.as_view(), name='post_create'),
+    path('posts/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
+    path('posts/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
+    path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
+
+    # Демо-ресурсы (комментарии)
+    path('comments/', CommentListView.as_view(), name='comment_list'),
+    path('comments/create/', CommentCreateView.as_view(), name='comment_create'),
+
+    # Демо-ресурсы (товары)
+    path('products/', ProductListView.as_view(), name='product_list'),
 ]
 
