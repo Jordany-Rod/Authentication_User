@@ -122,7 +122,7 @@ CREATE TABLE conditions (
 
 ## 4. Логика проверки доступа
 
-```
+```bash
 function check_permission(user, resource, action):
     # 1. Проверка суперпользователя
     if user.is_superuser:
@@ -153,19 +153,19 @@ function check_permission(user, resource, action):
 ## 5. Примеры проверки условий
 
 ### 5.1. Условие "только владелец"
-```commandline
+```bash
 def check_owner_condition(user, resource):
     return resource.user_id == user.id
 ```
 
 ### 5.2. Условие "только опубликованные"
-```commandline
+```bash
 def check_published_condition(resource):
     return resource.status == 'published'
 ```
 
 ### 5.3. Условие "в рабочее время"
-```commandline
+```bash
 def check_business_hours():
     hour = datetime.now().hour
     return 9 <= hour <= 18
@@ -192,7 +192,7 @@ def check_business_hours():
 
 ## 7. Тестовые данные для демонстрации
 
-```commandline
+```sql
 -- Роли
 INSERT INTO roles (name, description) VALUES 
 ('admin', 'Полный доступ ко всем ресурсам'),

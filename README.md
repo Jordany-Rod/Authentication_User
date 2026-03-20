@@ -110,6 +110,16 @@ python manage.py runserver
 3. Прямые разрешения - override для конкретных пользователей
 4. Приоритет запретов - запрет имеет больший приоритет
 
+### Коды ответов
+| Код | Описание |
+|-----|----------|
+|  200   |     Успешный запрос     |
+|  201   |     Ресурс создан     |
+|   400  |     Ошибка валидации данных     |
+|   401  |     Не авторизован (требуется токен)     |
+|   403  |      Доступ запрещен (недостаточно прав)    |
+|   404  |     Ресурс не найден     |
+
 ### Тестирование
 
 ## Тестовые пользователи
@@ -132,6 +142,72 @@ python manage.py seed_permissions
 
 # Только бизнес-объекты
 python manage.py seed_business
+```
+## Примеры запросов
+
+### 1. Регистрация пользователя
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "first_name": "Иван",
+    "last_name": "Иванов",
+    "password": "secure123",
+    "password2": "secure123"
+  }'
+```
+### Ответ:
+```json
+{
+  "success": true,
+  "message": "Пользователь успешно зарегистрирован",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "first_name": "Иван",
+    "last_name": "Иванов",
+    "is_active": true
+  }
+}
+```
+### 2. Вход в систему
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "secure123"
+  }'
+```
+### Ответ:
+```json
+{
+  "success": true,
+  "message": "Вход выполнен успешно",
+  "tokens": {
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+### 3. Получение профиля (требуется токен)
+```json
+curl -X GET http://127.0.0.1:8000/api/auth/me/ \
+  -H "Authorization: Bearer <ваш-токен>"
+```
+
+### 4. Создание поста
+```bash
+curl -X POST http://127.0.0.1:8000/api/business/posts/ \
+  -H "Authorization: Bearer <ваш-токен>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Мой первый пост",
+    "content": "Содержание поста",
+    "status": "draft"
+  }'
 ```
 ## Контакты
 
