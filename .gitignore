@@ -1,36 +1,27 @@
-# Виртуальное окружение
-venv/
-env/
-ENV/
-
 # Python
 __pycache__/
 *.py[cod]
-*.pyc
-*.pyo
-*.pyd
-*.so
-*.egg
 *.egg-info/
-dist/
-build/
+
+# Виртуальное окружение
+venv/
+.venv/
+env/
 
 # Django
-*.log
-local_settings.py
 db.sqlite3
-media/
+*.log
 staticfiles/
+media/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Environment variables
+# Настройки (секреты)
 .env
 *.env
+# Оставляем .env.example в репозитории!
+!.env.example
 
-# Project specific
-user_portal/settings_local.py
+# IDE и OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
