@@ -150,7 +150,7 @@ curl -X POST http://127.0.0.1:8000/api/auth/login/ \
 }
 ```
 ### 3. Получение профиля (требуется токен)
-```json
+```bash
 curl -X GET http://127.0.0.1:8000/api/auth/me/ \
   -H "Authorization: Bearer <ваш-токен>"
 ```
